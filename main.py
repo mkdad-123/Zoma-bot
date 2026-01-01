@@ -4,11 +4,11 @@ import keyboard
 import time
 import numpy as np
 from config import *
-from vision import detect_game_window, detect_balls , detect_frog_balls
+from vision import detect_game_window, detect_balls  , detect_next_ball
 from utils import show_fps, resize_widow , set_window
+from vision_frog import get_frog_balls_by_color
 
-current_ball = None
-next_ball = None
+
 
 # ==============================
 # Main Loop
@@ -18,6 +18,11 @@ next_ball = None
 def run_bot():
     print("Focus the game window and press 'S' to lock it...")
     keyboard.wait('s')
+    
+    current_ball = None
+    next_ball = None
+    initialized = False
+    last_shot_time = 0
 
     with mss.mss() as sct:
         monitor = sct.monitors[1]
@@ -35,9 +40,7 @@ def run_bot():
         else:
             print("Game window not detected, using full screen.")
             game_region = monitor
-        img = np.array(sct.grab(game_region))
-        frame = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-        cv2.imwrite("frog_calibration.png", frame)
+    
 
         window_name = set_window()
 
@@ -52,26 +55,36 @@ def run_bot():
                 print("Game size changed. Re-locking ROI...")
                 bounds = detect_game_window(frame)
 
+            scale = PREVIEW_SCALE_PERCENT / 100
+
+
+
+
             annotated, balls = detect_balls(frame)
+
+            # هون بكشف كرات الضفدع 
+            back_ball, mouth_ball, roi_box = get_frog_balls_by_color(frame)
+
+            # الرسم لاعرف شاغل صح 
+            rx, ry, rsize = roi_box
+            # عم ارسم مربع الـ ROI حول الضفدع
+            cv2.rectangle(annotated, (rx, ry), (rx + rsize, ry + rsize), (255, 255, 255), 2)
             
-            current_ball, next_ball, mouth_pos, back_pos = detect_frog_balls(
-                frame,
-                back_ball_center=FROG_CENTER,
-                frog_radius=FROG_RADIUS
-            )
+            if back_ball:
+                color = back_ball['color']
+                cv2.putText(annotated, f"Back: {color}", (rx, ry - 10), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, COLOR_DRAW_MAP[color], 2)
+                cv2.circle(annotated, back_ball['abs_pos'], 5, (255, 255, 255), -1)
 
-            if back_pos:
-                cv2.circle(frame, back_pos, 8, (255, 255, 255), 2)
-                cv2.putText(frame, f"Next: {next_ball}", (back_pos[0]+10, back_pos[1]),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,255,255), 2)
-
-            if mouth_pos:
-                cv2.circle(frame, mouth_pos, 8, (0, 255, 0), 2)
-                cv2.putText(frame, f"Current: {current_ball}", (mouth_pos[0]+10, mouth_pos[1]),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
+            if mouth_ball:
+                color = mouth_ball['color']
+                cv2.putText(annotated, f"Mouth: {color}", (rx, ry + rsize + 20), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, COLOR_DRAW_MAP[color], 2)
+                cv2.circle(annotated, mouth_ball['abs_pos'], 8, (0, 255, 255), 2)
 
 
-            # حسبت FPS
+
+                # حسبت FPS
             last_time = show_fps(last_time, annotated)
 
         

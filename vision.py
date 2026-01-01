@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from config import *
+from utils import crop_around_center
 
 # ==============================
 # Game Window Detection
@@ -135,12 +136,13 @@ def detect_balls(frame):
 
 
 def sample_hsv_roi(hsv_frame, cx, cy):
+
     h, w = hsv_frame.shape[:2]
 
-    x1 = max(cx - 3, 0)
-    y1 = max(cy - 3, 0)
-    x2 = min(cx + 3, w)
-    y2 = min(cy + 3, h)
+    x1 = max(cx - 5, 0)
+    y1 = max(cy - 5, 0)
+    x2 = min(cx + 5, w)
+    y2 = min(cy + 5, h)
 
     roi = hsv_frame[y1:y2, x1:x2]
     if roi.size == 0:
@@ -150,59 +152,23 @@ def sample_hsv_roi(hsv_frame, cx, cy):
 
     return avg
 
-def detect_frog_balls(frame, back_ball_center, frog_radius):
-    """
-    back_ball_center: center of the back ball (given manually)
-    frog_radius: distance from back ball center to frog nose
-    """
 
-    if back_ball_center is None or frog_radius is None:
-        return None, None, None, None
+
+def detect_next_ball(frame, back_ball_center):
+    """
+    Detects the color of the next ball (back ball) only.
+    """
+    if back_ball_center is None:
+        return None
 
     bx, by = back_ball_center
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # ========= Next ball (back ball itself) =========
-    back_avg = sample_hsv_roi(hsv, bx, by)
-    next_color = classify_ball_color(back_avg) if back_avg else None
-    back_pos = (bx, by)
+    avg = sample_hsv_roi(hsv, bx, by)
+    if avg is None:
+        return None
 
-    # ========= Current ball (search in front arc) =========
-    current_color = None
-    mouth_pos = None
-
-    for angle in range(-90, 91, 10):
-        rad = np.deg2rad(angle)
-
-        x = int(bx + frog_radius * np.sin(rad))
-        y = int(by - frog_radius * np.cos(rad))
-
-        avg = sample_hsv_roi(hsv, x, y)
-        color = classify_ball_color(avg) if avg else None
-
-        if color:
-            current_color = color
-            mouth_pos = (x, y)
-            break
-
-    return current_color, next_color, mouth_pos, back_pos
-
-
-# def detect_next_ball(frame, back_ball_center):
-#     """
-#     Detects the color of the next ball (back ball) only.
-#     """
-#     if back_ball_center is None:
-#         return None
-
-#     bx, by = back_ball_center
-#     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-#     avg = sample_hsv_roi(hsv, bx, by)
-#     if avg is None:
-#         return None
-
-#     return classify_ball_color(avg)
+    return classify_ball_color(avg)
 
 
 
