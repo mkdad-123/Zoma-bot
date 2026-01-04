@@ -12,19 +12,28 @@ def get_frog_balls_by_color(frame):
 
     for color_name, bgr_color in COLOR_DRAW_MAP.items():
         mask = get_color_mask(hsv_roi, color_name)
+
+        if color_name == "Green" or color_name == "Yellow" :
+            debug_mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+            cv2.putText(debug_mask, f"{color_name} Mask", (10, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+            debug_mask = cv2.resize(debug_mask, None, fx=2, fy=2)
+            cv2.imshow(f"{color_name} Mask Debug", debug_mask)
         
+
         kernel = np.ones((7,7), np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
         
-
-        # البحث عن  (Contours)
+        
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         for cnt in contours:
             area = cv2.contourArea(cnt)
+            if area > 2000:
+                continue 
             
-            if area > BALL_MIN_AREA: 
+            if  area > BALL_MIN_AREA : 
                 perimeter = cv2.arcLength(cnt, True)
                 circularity = 4 * np.pi * (area / (perimeter * perimeter)) if perimeter > 0 else 0
                 
@@ -56,13 +65,9 @@ def get_frog_balls_by_color(frame):
 
 def get_color_mask(hsv_roi, color_name):
 
-    if color_name == "Red":
-        mask1 = cv2.inRange(hsv_roi, np.array([0, 120, 120]), np.array([10, 255, 255]))
-        mask2 = cv2.inRange(hsv_roi, np.array([160, 120, 120]), np.array([180, 255, 255]))
-        return cv2.bitwise_or(mask1, mask2)
-    
-    elif color_name == "Green":
-        return cv2.inRange(hsv_roi, np.array([40, 80, 60]),np.array([85, 255, 255]))
+    if color_name == "Green":
+
+        return cv2.inRange(hsv_roi, np.array([50, 120, 125]),np.array([75, 255, 255]))
     
     elif color_name == "Blue":
         return cv2.inRange(hsv_roi, np.array([100, 110, 120]), np.array([130, 255, 255]))

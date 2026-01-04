@@ -58,8 +58,6 @@ def run_bot():
             scale = PREVIEW_SCALE_PERCENT / 100
 
 
-
-
             annotated, balls = detect_balls(frame)
 
             # هون بكشف كرات الضفدع 
@@ -94,6 +92,7 @@ def run_bot():
 
             cv2.imshow(window_name, resized)
 
+            cv2.waitKey(1)
             if keyboard.is_pressed('esc') or cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
