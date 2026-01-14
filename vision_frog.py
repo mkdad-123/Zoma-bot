@@ -3,9 +3,9 @@ import numpy as np
 from config import *
 from utils import crop_around_center
 
-def get_frog_balls_by_color(frame):
+def get_frog_balls_by_color(frame, frog_center, frog_radius):
   
-    roi, (x_offset, y_offset) = crop_around_center(frame, BACK_BALL_CENTER, FROG_RADIUS * 2)
+    roi, (x_offset, y_offset) = crop_around_center(frame, frog_center, frog_radius * 2)
     hsv_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
     
     found_colors = []
@@ -13,12 +13,12 @@ def get_frog_balls_by_color(frame):
     for color_name, bgr_color in COLOR_DRAW_MAP.items():
         mask = get_color_mask(hsv_roi, color_name)
 
-        if color_name == "Green" or color_name == "Yellow" :
-            debug_mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-            cv2.putText(debug_mask, f"{color_name} Mask", (10, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
-            debug_mask = cv2.resize(debug_mask, None, fx=2, fy=2)
-            cv2.imshow(f"{color_name} Mask Debug", debug_mask)
+        # if color_name == "Green" or color_name == "Yellow" :
+        #     debug_mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+        #     cv2.putText(debug_mask, f"{color_name} Mask", (10, 30),
+        #                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+        #     debug_mask = cv2.resize(debug_mask, None, fx=2, fy=2)
+        #     cv2.imshow(f"{color_name} Mask Debug", debug_mask)
         
 
         kernel = np.ones((7,7), np.uint8)
@@ -47,7 +47,7 @@ def get_frog_balls_by_color(frame):
                             "color": color_name,
                             "pos_in_roi": (cx, cy),
                             "abs_pos": (cx + x_offset, cy + y_offset),
-                            "dist_to_back": np.linalg.norm(np.array([cx, cy]) - np.array([FROG_RADIUS, FROG_RADIUS]))
+                            "dist_to_back": np.linalg.norm(np.array([cx, cy]) - np.array([frog_radius, frog_radius]))
                         })
 
     back_ball = None
@@ -61,7 +61,7 @@ def get_frog_balls_by_color(frame):
         if len(found_colors) > 1:
             mouth_ball = found_colors[1] # الأبعد هي الفم
 
-    return back_ball, mouth_ball, (x_offset, y_offset, FROG_RADIUS * 2)
+    return back_ball, mouth_ball, (x_offset, y_offset, frog_radius * 2)
 
 def get_color_mask(hsv_roi, color_name):
 

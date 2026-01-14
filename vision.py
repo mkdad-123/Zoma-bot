@@ -154,21 +154,4 @@ def sample_hsv_roi(hsv_frame, cx, cy):
 
 
 
-def detect_next_ball(frame, back_ball_center):
-    """
-    Detects the color of the next ball (back ball) only.
-    """
-    if back_ball_center is None:
-        return None
-
-    bx, by = back_ball_center
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-    avg = sample_hsv_roi(hsv, bx, by)
-    if avg is None:
-        return None
-
-    return classify_ball_color(avg)
-
-
 
