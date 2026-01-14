@@ -31,13 +31,19 @@ def show_fps(last_time, frame):
     now = time.time()
     fps = 1 / max(now - last_time, 1e-6)
 
+    # الحصول على أبعاد النافذة (الارتفاع والعرض)
+    h, w = frame.shape[:2]
+
+    # الإحداثيات: (10 بكسل من اليسار، الارتفاع الكلي - 20 بكسل من الأسفل)
+    position = (10, h - 20)
+
     cv2.putText(
         frame,
         f"FPS: {int(fps)}",
-        (10, 30),
+        position,
         cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (0, 255, 0),
+        0.8,         # صغرنا الحجم قليلاً ليكون أنيقاً في الأسفل
+        (0, 255, 255), # اللون الأصفر (BGR: 0 Blue, 255 Green, 255 Red)
         2
     )
     return now

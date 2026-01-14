@@ -50,8 +50,10 @@ def classify_ball_color(hsv_pixel):
 
     if h <= 10 or h >= 160:
         return "Red"
+    
     if 9 <= h <= 18:
         return "Orange"
+    
     if 40 <= h <= 90 and s > 150 and v > 180:
         return "Green"
 
