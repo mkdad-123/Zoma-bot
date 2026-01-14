@@ -5,7 +5,9 @@ from utils import crop_around_center
 
 # ==============================
 # Game Window Detection
+# vision.py
 # ==============================
+
 
 def detect_game_window(frame):
     """
@@ -34,6 +36,7 @@ def detect_game_window(frame):
 # Color Classification
 # ==============================
 
+
 def classify_ball_color(hsv_pixel):
     """
     Rule-based color classification for Zuma balls.
@@ -47,7 +50,8 @@ def classify_ball_color(hsv_pixel):
 
     if h <= 10 or h >= 160:
         return "Red"
-
+    if 9 <= h <= 18:
+        return "Orange"
     if 40 <= h <= 90 and s > 150 and v > 180:
         return "Green"
 
@@ -93,17 +97,16 @@ def detect_balls(frame):
         return frame, detected_balls
 
     circles = np.around(circles).astype(int)
-    
 
     for cx, cy, r in circles[0]:
-        
+
         # Exclude static background regions
         if cx < EXCLUDED_TOP_LEFT[0] and cy < EXCLUDED_TOP_LEFT[1]:
             continue
 
         if cx > (frame.shape[1] - EXCLUDED_TOP_RIGHT_MARGIN) and cy < 150:
             continue
-        
+
         h, w = hsv_frame.shape[:2]
 
         if cx < 0 or cy < 0 or cx >= w or cy >= h:
@@ -148,10 +151,22 @@ def sample_hsv_roi(hsv_frame, cx, cy):
     if roi.size == 0:
         return None
     avg = cv2.mean(roi)[:3]
-    
 
     return avg
 
 
+def detect_next_ball(frame, back_ball_center):
+    """
+    Detects the color of the next ball (back ball) only.
+    """
+    if back_ball_center is None:
+        return None
 
+    bx, by = back_ball_center
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
+    avg = sample_hsv_roi(hsv, bx, by)
+    if avg is None:
+        return None
+
+    return classify_ball_color(avg)

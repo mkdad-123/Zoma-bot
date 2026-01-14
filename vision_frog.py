@@ -78,4 +78,7 @@ def get_color_mask(hsv_roi, color_name):
     elif color_name == "Purple":
         return cv2.inRange(hsv_roi, np.array([135, 110, 120]), np.array([158, 255, 255]))
     
+    elif color_name == "Orange":
+        return cv2.inRange(hsv_roi, np.array([40, 150, 180]), np.array([90, 255, 255]))
+    
     return np.zeros(hsv_roi.shape[:2], dtype=np.uint8)

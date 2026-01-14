@@ -1,6 +1,11 @@
+import math
 import cv2
 import time
 
+
+# ==============================
+# Window utils
+# ==============================
 def set_window():
     window_name = "Zuma Bot Preview"
     cv2.namedWindow(window_name, cv2.WINDOW_AUTOSIZE)
@@ -8,31 +13,40 @@ def set_window():
     cv2.moveWindow(window_name, 10, 10)
     return window_name
 
-def resize_widow(annotated, scale):
-    resized = cv2.resize(
-                annotated,
-                None,
-                fx=scale,
-                fy=scale,
-                interpolation=cv2.INTER_AREA
-            )
-    
-    return resized
 
-def show_fps(last_time, annotated):
+def resize_widow(annotated, scale):
+    return cv2.resize(
+        annotated,
+        None,
+        fx=scale,
+        fy=scale,
+        interpolation=cv2.INTER_AREA
+    )
+
+
+# ==============================
+# FPS (واحدة فقط ✔️)
+# ==============================
+def show_fps(last_time, frame):
     now = time.time()
-    fps = 1 / (now - last_time)
-    cv2.putText(annotated, f"FPS: {int(fps)}", (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    fps = 1 / max(now - last_time, 1e-6)
+
+    cv2.putText(
+        frame,
+        f"FPS: {int(fps)}",
+        (10, 30),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (0, 255, 0),
+        2
+    )
     return now
 
-def crop_around_center(frame, center, size):
-    """
-    Crops a square ROI around a given center.
 
-    center: (cx, cy)
-    size: side length of square
-    """
+# ==============================
+# Image helpers
+# ==============================
+def crop_around_center(frame, center, size):
     h, w = frame.shape[:2]
     cx, cy = center
     half = size // 2
@@ -44,3 +58,12 @@ def crop_around_center(frame, center, size):
 
     roi = frame[y1:y2, x1:x2]
     return roi, (x1, y1)
+
+
+# ==============================
+# AIM
+# ==============================
+def compute_angle(shooter_center, target_pos):
+    dx = target_pos[0] - shooter_center[0]
+    dy = target_pos[1] - shooter_center[1]
+    return math.degrees(math.atan2(dy, dx))
