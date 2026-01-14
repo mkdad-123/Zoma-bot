@@ -4,7 +4,7 @@ import numpy as np
 # ==============================
 # Load Frog Template
 # ==============================
-_FROG_TEMPLATE = cv2.imread("assets/frog_template2.png", cv2.IMREAD_GRAYSCALE)
+_FROG_TEMPLATE = cv2.imread("assets/frog_template.png", cv2.IMREAD_GRAYSCALE)
 if _FROG_TEMPLATE is None:
     raise RuntimeError("frog_template.png not found")
 
